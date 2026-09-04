@@ -1,0 +1,45 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.zploy.app'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.valdamel.pentotouch'
+        minSdk 34
+        targetSdk 36
+        versionCode 1
+        versionName '0.1-test'
+    }
+
+    buildFeatures {
+        aidl true
+        buildConfig true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lintOptions {
+        disable 'BlockedPrivateApi'
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation 'dev.rikka.shizuku:api:13.1.5'
+    implementation 'dev.rikka.shizuku:provider:13.1.5'
+}
