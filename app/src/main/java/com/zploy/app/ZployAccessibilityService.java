@@ -29,9 +29,13 @@ public final class ZployAccessibilityService extends AccessibilityService {
     @Override public void onMotionEvent(MotionEvent event) {
         if (event == null) return;
         int tool = event.getPointerCount() > 0 ? event.getToolType(0) : MotionEvent.TOOL_TYPE_UNKNOWN;
-        boolean stylusSource = (event.getSource() & InputDevice.SOURCE_STYLUS) == InputDevice.SOURCE_STYLUS;
+        int source = event.getSource();
+        boolean stylusSource = (source & InputDevice.SOURCE_STYLUS) == InputDevice.SOURCE_STYLUS;
+        boolean bluetoothStylus = (source & InputDevice.SOURCE_BLUETOOTH_STYLUS) == InputDevice.SOURCE_BLUETOOTH_STYLUS;
+        boolean mouseSource = (source & InputDevice.SOURCE_MOUSE) == InputDevice.SOURCE_MOUSE;
+        boolean relativeMouse = (source & InputDevice.SOURCE_MOUSE_RELATIVE) == InputDevice.SOURCE_MOUSE_RELATIVE;
         boolean stylusTool = tool == MotionEvent.TOOL_TYPE_STYLUS || tool == MotionEvent.TOOL_TYPE_ERASER;
-        if (!stylusSource && !stylusTool) return;
+        if (!stylusSource && !bluetoothStylus && !mouseSource && !relativeMouse && !stylusTool) return;
         Log.i(TAG, "PEN action=" + MotionEvent.actionToString(event.getActionMasked())
                 + " source=0x" + Integer.toHexString(event.getSource())
                 + " tool=" + tool + " x=" + event.getX() + " y=" + event.getY());
@@ -76,7 +80,11 @@ public final class ZployAccessibilityService extends AccessibilityService {
         try {
             AccessibilityServiceInfo info = getServiceInfo();
             if (info == null) return;
-            info.setMotionEventSources(enabled ? InputDevice.SOURCE_STYLUS : 0);
+            int sources = InputDevice.SOURCE_STYLUS
+                    | InputDevice.SOURCE_BLUETOOTH_STYLUS
+                    | InputDevice.SOURCE_MOUSE
+                    | InputDevice.SOURCE_MOUSE_RELATIVE;
+            info.setMotionEventSources(enabled ? sources : 0);
             setServiceInfo(info);
         } catch (Throwable ignored) { }
     }
