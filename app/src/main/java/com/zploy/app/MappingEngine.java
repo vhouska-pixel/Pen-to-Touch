@@ -56,7 +56,7 @@ public final class MappingEngine {
 
     private void tick() {
         ZployAccessibilityService accessibility = ZployAccessibilityService.getInstance();
-        if (accessibility == null || !accessibility.isTargetGameForeground() || accessibility.isOverlayEditing()) {
+        if (accessibility == null) {
             reset();
             return;
         }
