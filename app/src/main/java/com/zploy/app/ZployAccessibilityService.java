@@ -5,9 +5,11 @@ import android.accessibilityservice.AccessibilityServiceInfo;
 import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.accessibility.AccessibilityEvent;
+import android.util.Log;
 
 /** Captures stylus MotionEvents and reinjects them as single-finger touchscreen events. */
 public final class ZployAccessibilityService extends AccessibilityService {
+    private static final String TAG = "PenToTouch";
     private static volatile ZployAccessibilityService instance;
     public static ZployAccessibilityService getInstance() { return instance; }
 
@@ -25,7 +27,14 @@ public final class ZployAccessibilityService extends AccessibilityService {
     @Override public void onInterrupt() { }
 
     @Override public void onMotionEvent(MotionEvent event) {
-        if (event == null || (event.getSource() & InputDevice.SOURCE_STYLUS) != InputDevice.SOURCE_STYLUS) return;
+        if (event == null) return;
+        int tool = event.getPointerCount() > 0 ? event.getToolType(0) : MotionEvent.TOOL_TYPE_UNKNOWN;
+        boolean stylusSource = (event.getSource() & InputDevice.SOURCE_STYLUS) == InputDevice.SOURCE_STYLUS;
+        boolean stylusTool = tool == MotionEvent.TOOL_TYPE_STYLUS || tool == MotionEvent.TOOL_TYPE_ERASER;
+        if (!stylusSource && !stylusTool) return;
+        Log.i(TAG, "PEN action=" + MotionEvent.actionToString(event.getActionMasked())
+                + " source=0x" + Integer.toHexString(event.getSource())
+                + " tool=" + tool + " x=" + event.getX() + " y=" + event.getY());
         if (!ShizukuBridge.get().isReady()) return;
 
         final int masked = event.getActionMasked();
@@ -53,8 +62,9 @@ public final class ZployAccessibilityService extends AccessibilityService {
         }
 
         long down = touchDownTime > 0 ? touchDownTime : event.getDownTime();
-        ShizukuBridge.get().injectMotion(action, down, event.getEventTime(),
+        boolean injected = ShizukuBridge.get().injectMotion(action, down, event.getEventTime(),
                 new int[]{0}, new float[]{event.getX()}, new float[]{event.getY()});
+        Log.i(TAG, "INJECT action=" + MotionEvent.actionToString(action) + " result=" + injected);
 
         if (masked == MotionEvent.ACTION_UP || masked == MotionEvent.ACTION_CANCEL) {
             penDown = false;
